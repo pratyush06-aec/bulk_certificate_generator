@@ -1,0 +1,7 @@
+fastapi[standard]
+sqlalchemy
+psycopg[binary]
+alembic
+pillow
+pytest
+httpx
