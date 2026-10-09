@@ -125,6 +125,26 @@ The workflow can be engaged either via the Frontend UI or directly via the Swagg
 3. Input your `job_id` and specify the `format` query parameter as `pdf` or `png`.
 4. Click Execute, and click the **Download file** link in the response body to save your ZIP archive.
 
+## 🐛 Known Bugs Encountered & Resolutions
+
+During development, we encountered and resolved several interesting architectural and integration bugs:
+
+1. **Schema Mismatch during Frontend Polling**: 
+   - *Bug*: The frontend UI was remaining at 0% progress despite the backend successfully completing jobs. 
+   - *Resolution*: Discovered a mismatch where `app.js` expected `data.total`, `data.completed`, and `data.status`, while the API returned `total_certificates`, `processed_certificates`, and lowercase status. We refactored the frontend UI test mocks and `app.js` to strictly parse the verified `JobProgressResponse` Pydantic schema and handle uppercase string comparisons.
+2. **Duplicate FastAPI Keyword Arguments**: 
+   - *Bug*: The application initially crashed with a `SyntaxError: keyword argument repeated` caused by passing `docs_url=None` twice in the `FastAPI()` instantiation.
+   - *Resolution*: Removed the duplicate declaration in `app/main.py` to restore standard Swagger UI functionality.
+3. **Frontend Horizontal Alignment Constraint**: 
+   - *Bug*: The UI text sections were not spreading horizontally to fill the enterprise-grade wide layout, squishing the title and paragraph.
+   - *Resolution*: Removed restrictive `max-width` properties in `styles.css` (`.intro-section`), allowing the text layout to inherit the full responsive `1200px` container width.
+4. **Playwright Path Errors inside Windows Virtual Environment**: 
+   - *Bug*: Running `pytest` for the Playwright frontend tests threw a `ModuleNotFoundError: No module named 'playwright'` despite successful pip installation, due to Windows PowerShell terminal sessions not fully inheriting `.venv` paths.
+   - *Resolution*: Invoked pytest using explicitly resolved paths (`.\.venv\Scripts\pytest`) which correctly linked the binaries and successfully executed the E2E testing suite.
+5. **Static File Resolution for Favicon**:
+   - *Bug*: The favicon and other static assets failed to load natively because FastAPI did not properly serve the root static directory in some environments.
+   - *Resolution*: Explicitly mounted the static folder using `app.mount("/static", StaticFiles(directory="static"), name="static")` ensuring the frontend templates and images served perfectly.
+
 ---
 
 ## ⚙️ Key System Design Decisions & Limitations
