@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Certificate Generator</title>
+    <!-- Use Inter font for a modern, clean, tech aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="shortcut icon" href="/favicon.png">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="/favicon.png" alt="Logo" class="logo-img">
+                <h1>Certificate Generator</h1>
+            </div>
+            <nav class="header-nav">
+                <a href="/docs" class="nav-link">API Swagger</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="intro-section">
+            <h2>Automated Certificate Issuance</h2>
+            <p>Generate, manage, and download bulk certificates effortlessly. Upload your attendee roster and instantly process personalized certificates with enterprise-grade reliability.</p>
+        </section>
+
+        <div class="dashboard-grid">
+            <!-- Upload Section -->
+            <section class="card upload-card">
+                <h3>Create New Batch</h3>
+                <form id="jobForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="eventName">Event Name</label>
+                        <input type="text" id="eventName" name="event_name" placeholder="e.g., Annual Tech Summit 2026" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDate">Event Date</label>
+                        <input type="text" id="eventDate" name="event_date" placeholder="e.g., October 15, 2026" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fileInput">Attendee List (CSV or XLSX)</label>
+                        <div class="file-drop-area">
+                            <input type="file" id="fileInput" name="file" accept=".csv, .xlsx" required>
+                            <span class="file-msg">Choose a file or drag it here</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Generate Certificates</button>
+                </form>
+            </section>
+
+            <!-- Status Section -->
+            <section class="card status-card" id="statusSection" style="display: none;">
+                <div class="status-header">
+                    <h3>Job Status</h3>
+                    <span id="jobStatusBadge" class="badge">PENDING</span>
+                </div>
+                
+                <div class="status-details">
+                    <div class="stat-box">
+                        <span class="stat-label">Total</span>
+                        <span class="stat-value" id="statTotal">0</span>
+                    </div>
+                    <div class="stat-box success-box">
+                        <span class="stat-label">Successful</span>
+                        <span class="stat-value" id="statSuccess">0</span>
+                    </div>
+                    <div class="stat-box error-box">
+                        <span class="stat-label">Failed</span>
+                        <span class="stat-value" id="statFailed">0</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+                    <span id="progressText" style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div id="errorListContainer" class="error-list-container" style="display: none;">
+                    <h4>Failed Records</h4>
+                    <ul id="errorList" class="error-list"></ul>
+                </div>
+
+                <div class="download-section" id="downloadSection" style="display: none;">
+                    <h4>Batch Complete</h4>
+                    <div class="download-controls">
+                        <select id="downloadFormat" class="format-select">
+                            <option value="pdf">PDF Format</option>
+                            <option value="png">PNG Format</option>
+                        </select>
+                        <button id="downloadBtn" class="btn btn-accent">Download ZIP</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 Certificate Generator API. Professional Automated Issuance.</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

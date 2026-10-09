@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.api.routes import jobs, certificates
 
@@ -27,6 +28,8 @@ async def custom_swagger_ui_html():
 async def favicon():
     return FileResponse("assets/fav_icon.png")
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Certificate Generator API", "environment": settings.ENVIRONMENT}
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", include_in_schema=False)
+async def read_root():
+    return FileResponse("static/index.html")
