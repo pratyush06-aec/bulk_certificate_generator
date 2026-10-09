@@ -3,12 +3,12 @@ from typing import List, Optional
 from datetime import datetime
 
 class RecipientInput(BaseModel):
-    name: str = Field(..., min_length=1)
+    name: str
 
 class GenerationRequest(BaseModel):
-    event_name: str = Field(..., min_length=1)
-    event_date: str = Field(..., min_length=1)
-    recipients: List[RecipientInput] = Field(..., min_length=1)
+    event_name: str
+    event_date: str
+    recipients: List[RecipientInput]
 
 class JobResponse(BaseModel):
     job_id: str

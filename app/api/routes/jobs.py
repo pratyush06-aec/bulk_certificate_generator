@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, UploadFile, File, Form, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.job import Job
@@ -10,9 +11,17 @@ import uuid
 router = APIRouter(prefix="/api/v1/jobs", tags=["Jobs"])
 
 from app.services.job_service import process_job_background
+from app.services.attendee_parser import parse_attendees_file
+from app.services.archive_service import create_job_archive
 
 @router.post("", response_model=JobResponse, status_code=202)
 def create_job(request: GenerationRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    if not request.event_name.strip() or not request.event_date.strip():
+        raise HTTPException(status_code=400, detail="event_name and event_date cannot be empty.")
+        
+    if not request.recipients:
+        raise HTTPException(status_code=400, detail="No recipients provided.")
+
     job_id = str(uuid.uuid4())
     
     new_job = Job(
@@ -25,15 +34,76 @@ def create_job(request: GenerationRequest, background_tasks: BackgroundTasks, db
     db.add(new_job)
     
     for recipient in request.recipients:
-        cert = Certificate(
-            job_id=job_id,
-            recipient_name=recipient.name,
-            status="PENDING"
-        )
+        if not recipient.name.strip():
+            cert = Certificate(
+                job_id=job_id,
+                recipient_name=recipient.name,
+                status="FAILED",
+                error_message="Recipient name cannot be empty"
+            )
+        else:
+            cert = Certificate(
+                job_id=job_id,
+                recipient_name=recipient.name,
+                status="PENDING"
+            )
         db.add(cert)
         
     db.commit()
     
+    background_tasks.add_task(process_job_background, job_id)
+    
+    return JobResponse(
+        job_id=job_id,
+        status="QUEUED",
+        total_recipients=new_job.total_recipients
+    )
+
+@router.post("/upload", response_model=JobResponse, status_code=202)
+async def upload_job(
+    background_tasks: BackgroundTasks,
+    event_name: str = Form(...),
+    event_date: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    if not event_name.strip() or not event_date.strip():
+        raise HTTPException(status_code=400, detail="event_name and event_date cannot be empty.")
+        
+    raw_recipients = await parse_attendees_file(file)
+    
+    if not raw_recipients:
+        raise HTTPException(status_code=400, detail="No recipients provided.")
+
+    job_id = str(uuid.uuid4())
+    
+    new_job = Job(
+        id=job_id,
+        event_name=event_name,
+        event_date=event_date,
+        status="QUEUED",
+        total_recipients=len(raw_recipients)
+    )
+    db.add(new_job)
+    
+    for recipient_dict in raw_recipients:
+        name = recipient_dict.get("name", "")
+        if not name.strip():
+            cert = Certificate(
+                job_id=job_id,
+                recipient_name=name,
+                status="FAILED",
+                error_message="Recipient name cannot be empty"
+            )
+        else:
+            cert = Certificate(
+                job_id=job_id,
+                recipient_name=name,
+                status="PENDING"
+            )
+        db.add(cert)
+        
+    db.commit()
     background_tasks.add_task(process_job_background, job_id)
     
     return JobResponse(
@@ -91,4 +161,27 @@ def get_job_certificates(job_id: str, db: Session = Depends(get_db)):
     return JobCertificatesResponse(
         job_id=job.id,
         certificates=cert_responses
+    )
+
+@router.get("/{job_id}/download")
+def download_job_archive(job_id: str, format: str = "pdf", db: Session = Depends(get_db)):
+    if format not in ["pdf", "png"]:
+        raise HTTPException(status_code=400, detail="Unsupported format. Use 'pdf' or 'png'.")
+        
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    if job.status not in ["COMPLETED", "FAILED"]:
+        raise HTTPException(status_code=400, detail="Job is not yet complete. Cannot download archive.")
+        
+    zip_buffer = create_job_archive(job_id, format, db)
+    
+    if not zip_buffer:
+        raise HTTPException(status_code=400, detail="No successful certificates available for download.")
+        
+    return StreamingResponse(
+        zip_buffer, 
+        media_type="application/zip", 
+        headers={"Content-Disposition": f'attachment; filename="certificates_{job_id}_{format}.zip"'}
     )

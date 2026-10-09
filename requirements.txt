@@ -5,3 +5,6 @@ alembic
 pillow
 pytest
 httpx
+python-multipart
+openpyxl
+pymupdf

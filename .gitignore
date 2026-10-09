@@ -1,2 +1,14 @@
 # Environment Variables 
+.env
 *.env
+
+# Generated Certificates 
+/generated
+generated/
+*/generated/*
+
+# Caches and Environments
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
