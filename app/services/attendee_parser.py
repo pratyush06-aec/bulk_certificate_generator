@@ -32,10 +32,8 @@ async def parse_attendees_file(file: UploadFile) -> List[Dict[str, Any]]:
                 
             reader.fieldnames = normalized_headers
                 
-            for row in reader:
-                # We specifically just extract 'name' per ponytail principles (YAGNI for position)
-                recipients.append({"name": row.get("name", "").strip()})
-                
+            # We specifically just extract 'name' per ponytail principles (YAGNI for position)
+            recipients.extend([{"name": row.get("name", "").strip()} for row in reader])
         except UnicodeDecodeError:
             raise HTTPException(status_code=400, detail="Invalid file encoding. Please use UTF-8.")
         except HTTPException:
@@ -58,11 +56,8 @@ async def parse_attendees_file(file: UploadFile) -> List[Dict[str, Any]]:
                 
             name_idx = headers.index("name")
             
-            for row in rows[1:]:
-                # Check bounds and avoid 'None' string casting
-                name_val = str(row[name_idx]).strip() if len(row) > name_idx and row[name_idx] is not None else ""
-                recipients.append({"name": name_val})
-                
+            # Check bounds and avoid 'None' string casting
+            recipients.extend([{"name": str(row[name_idx]).strip() if len(row) > name_idx and row[name_idx] is not None else ""} for row in rows[1:]])
         except HTTPException:
             raise
         except Exception as e:

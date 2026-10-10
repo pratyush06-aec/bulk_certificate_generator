@@ -33,21 +33,15 @@ def create_job(request: GenerationRequest, background_tasks: BackgroundTasks, db
     )
     db.add(new_job)
     
-    for recipient in request.recipients:
-        if not recipient.name.strip():
-            cert = Certificate(
-                job_id=job_id,
-                recipient_name=recipient.name,
-                status="FAILED",
-                error_message="Recipient name cannot be empty"
-            )
-        else:
-            cert = Certificate(
-                job_id=job_id,
-                recipient_name=recipient.name,
-                status="PENDING"
-            )
-        db.add(cert)
+    db.add_all([
+        Certificate(
+            job_id=job_id, 
+            recipient_name=r.name, 
+            status="PENDING" if r.name.strip() else "FAILED",
+            error_message=None if r.name.strip() else "Recipient name cannot be empty"
+        )
+        for r in request.recipients
+    ])
         
     db.commit()
     
@@ -86,22 +80,15 @@ async def upload_job(
     )
     db.add(new_job)
     
-    for recipient_dict in raw_recipients:
-        name = recipient_dict.get("name", "")
-        if not name.strip():
-            cert = Certificate(
-                job_id=job_id,
-                recipient_name=name,
-                status="FAILED",
-                error_message="Recipient name cannot be empty"
-            )
-        else:
-            cert = Certificate(
-                job_id=job_id,
-                recipient_name=name,
-                status="PENDING"
-            )
-        db.add(cert)
+    db.add_all([
+        Certificate(
+            job_id=job_id, 
+            recipient_name=r.get("name", ""), 
+            status="PENDING" if r.get("name", "").strip() else "FAILED",
+            error_message=None if r.get("name", "").strip() else "Recipient name cannot be empty"
+        )
+        for r in raw_recipients
+    ])
         
     db.commit()
     background_tasks.add_task(process_job_background, job_id)
@@ -146,17 +133,16 @@ def get_job_certificates(job_id: str, db: Session = Depends(get_db)):
         
     certs = db.query(Certificate).filter(Certificate.job_id == job_id).all()
     
-    cert_responses = []
-    for c in certs:
-        cert_responses.append(
-            CertificateMetadataResponse(
-                certificate_id=c.id,
-                recipient_name=c.recipient_name,
-                status=c.status,
-                error_message=c.error_message,
-                download_url=f"/api/v1/certificates/{c.id}" if c.status == "COMPLETED" else None
-            )
+    cert_responses = [
+        CertificateMetadataResponse(
+            certificate_id=c.id,
+            recipient_name=c.recipient_name,
+            status=c.status,
+            error_message=c.error_message,
+            download_url=f"/api/v1/certificates/{c.id}" if c.status == "COMPLETED" else None
         )
+        for c in certs
+    ]
         
     return JobCertificatesResponse(
         job_id=job.id,

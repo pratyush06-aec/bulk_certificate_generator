@@ -22,9 +22,7 @@ def create_job_archive(job_id: str, fmt: str, db: Session) -> Optional[io.BytesI
             if not cert.file_path or not os.path.exists(cert.file_path):
                 continue
                 
-            safe_name = "".join([c if c.isalnum() else "_" for c in cert.recipient_name]).strip("_")
-            if not safe_name:
-                safe_name = f"certificate_{i}"
+            safe_name = "".join(c if c.isalnum() else "_" for c in cert.recipient_name).strip("_") or f"certificate_{i}"
                 
             base_filename = f"{safe_name}_{cert.id[:8]}"
             
