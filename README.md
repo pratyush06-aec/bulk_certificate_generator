@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="static/favicon.png" alt="Logo" width="120" />
+  <img src="assets/fav_icon.png" alt="Logo" width="120" />
   <h1>Bulk Certificate Generator</h1>
   <p>A blazing fast, minimalist FastAPI backend and Vanilla JS frontend for asynchronously generating and serving certificates in bulk.</p>
   <p><strong>🌐 Live Demo:</strong> <a href="https://bulk-certificate-generator-9fmo.onrender.com">https://bulk-certificate-generator-9fmo.onrender.com</a></p>
@@ -10,10 +10,10 @@
 ## 📸 Screenshots
 
 ### Frontend UI
-![Frontend Interface](file:///C:/Users/praty/.gemini/antigravity-ide/brain/c31d9139-b3bc-4506-8dc8-f3072981457a/.user_uploaded/media_1791566330321.png)
+![Frontend Interface](assets/frontend_ui.png)
 
 ### Swagger API UI
-![Swagger UI](file:///C:/Users/praty/.gemini/antigravity-ide/brain/c31d9139-b3bc-4506-8dc8-f3072981457a/.user_uploaded/media_1791460179422.png)
+![Swagger UI](assets/swagger_ui.png)
 
 ---
 
