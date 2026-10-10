@@ -2,6 +2,7 @@
   <img src="static/favicon.png" alt="Logo" width="120" />
   <h1>Bulk Certificate Generator</h1>
   <p>A blazing fast, minimalist FastAPI backend and Vanilla JS frontend for asynchronously generating and serving certificates in bulk.</p>
+  <p><strong>🌐 Live Demo:</strong> <a href="https://bulk-certificate-generator-9fmo.onrender.com">https://bulk-certificate-generator-9fmo.onrender.com</a></p>
 </div>
 
 ---
