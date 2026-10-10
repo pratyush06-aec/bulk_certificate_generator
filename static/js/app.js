@@ -128,39 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
         jobStatusBadge.textContent = data.status;
         jobStatusBadge.className = `badge ${data.status}`;
         
-        const total = data.total || 0;
-        const success = data.completed || 0;
-        const failed = data.failed || 0;
-        
-        statTotal.textContent = total;
-        statSuccess.textContent = success;
-        statFailed.textContent = failed;
+        statTotal.textContent = data.total || 0;
+        statSuccess.textContent = data.completed || 0;
+        statFailed.textContent = data.failed || 0;
 
-        const processed = success + failed;
-        let pct = 0;
-        if (total > 0) {
-            pct = (processed / total) * 100;
-        }
+        const pct = data.total ? ((data.completed + data.failed) / data.total) * 100 : 0;
         progressBar.style.width = `${pct}%`;
         
         const progressText = document.getElementById('progressText');
-        if (progressText) {
-            progressText.textContent = `${Math.round(pct)}%`;
-        }
+        if (progressText) progressText.textContent = `${Math.round(pct)}%`;
     }
 
     function updateErrors(certificates) {
         const failedCerts = certificates.filter(c => c.status === 'FAILED');
         if (failedCerts.length > 0) {
             errorListContainer.style.display = 'block';
-            errorList.innerHTML = '';
-            failedCerts.forEach(cert => {
-                const li = document.createElement('li');
-                // Clean up technical traceback looking string to just the message
-                let errorMsg = cert.error_message || 'Unknown error';
-                li.textContent = `${cert.recipient_name}: ${errorMsg}`;
-                errorList.appendChild(li);
-            });
+            errorList.innerHTML = failedCerts.map(c => `<li>${c.recipient_name}: ${c.error_message || 'Unknown error'}</li>`).join('');
         } else {
             errorListContainer.style.display = 'none';
         }
