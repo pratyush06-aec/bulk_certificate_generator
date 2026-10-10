@@ -144,6 +144,15 @@ During development, we encountered and resolved several interesting architectura
 5. **Static File Resolution for Favicon**:
    - *Bug*: The favicon and other static assets failed to load natively because FastAPI did not properly serve the root static directory in some environments.
    - *Resolution*: Explicitly mounted the static folder using `app.mount("/static", StaticFiles(directory="static"), name="static")` ensuring the frontend templates and images served perfectly.
+6. **Pytest Module Import Quirk (`ImportError while loading conftest`)**:
+   - *Bug*: Running `pytest tests/` failed to find the `app` folder because pytest doesn't automatically add the root project folder to the Python path.
+   - *Resolution*: Created a `pytest.ini` file in the root directory that instructs Pytest to append the current directory to the Python path before running tests.
+7. **SQLAlchemy In-Memory Database Missing Tables**:
+   - *Bug*: The test suite threw `no such table: jobs` errors. The in-memory SQLite database was initialized, but because the `Job` and `Certificate` models hadn't been explicitly imported in `conftest.py`, SQLAlchemy created an empty database.
+   - *Resolution*: Added explicit imports for the model files directly inside `tests/conftest.py`.
+8. **Background Task Database Isolation (In-Memory SQLite Alternate Dimension)**:
+   - *Bug*: The `test_failure_isolation` test failed with a "Job not found" error. Because `sqlite:///:memory:` creates a completely fresh, blank database *for every new connection*, the FastAPI test client and the background task were opening separate connections. The background task was looking at an empty "alternate dimension" SQLite database.
+   - *Resolution*: Configured SQLAlchemy to use a `StaticPool` inside `tests/conftest.py`. This forces SQLite to share a single unified in-memory database across all connections for the duration of the test run, ensuring both the web thread and the background worker write and read from the exact same tables.
 
 ---
 
