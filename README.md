@@ -7,16 +7,6 @@
 
 ---
 
-## 📸 Screenshots
-
-### Frontend UI
-![Frontend Interface](assets/frontend_ui.png)
-
-### Swagger API UI
-![Swagger UI](assets/swagger_ui.png)
-
----
-
 ## 🏗️ Workflow & Architecture Documentation
 
 This project outlines a complete decoupled architecture consisting of a modern, responsive frontend and a highly concurrent FastAPI backend that orchestrates the heavy lifting of bulk certificate generation using background tasks.
